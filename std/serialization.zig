@@ -395,7 +395,11 @@ fn testIntSerializerDeserializer(comptime endian: builtin.Endian, comptime packi
         const x = try _deserializer.deserializeInt(U);
         const y = try _deserializer.deserializeInt(S);
         testing.expect(x == @as(U, i));
-        if (i != 0) testing.expect(y == @as(S, -1)) else testing.expect(y == 0);
+        if (i != 0) {
+            try testing.expect(y == @as(S, -1));
+        } else { 
+            try testing.expect(y == 0);
+        }
     }
 
     const u8_bit_count = comptime meta.bitCount(u8);
@@ -405,7 +409,7 @@ fn testIntSerializerDeserializer(comptime endian: builtin.Endian, comptime packi
     const extra_packed_byte = @boolToInt(total_bits % u8_bit_count > 0);
     const total_packed_bytes = (total_bits / u8_bit_count) + extra_packed_byte;
 
-    testing.expect(in.pos == if (packing == .Bit) total_packed_bytes else total_bytes);
+    try testing.expect(in.pos == if (packing == .Bit) total_packed_bytes else total_bytes);
 
     //Verify that empty error set works with serializer.
     //deserializer is covered by FixedBufferStream
@@ -454,12 +458,12 @@ fn testIntSerializerDeserializerInfNaN(
     const inf_check_f64 = try _deserializer.deserialize(f64);
     //const nan_check_f128 = try deserializer.deserialize(f128);
     //const inf_check_f128 = try deserializer.deserialize(f128);
-    testing.expect(std.math.isNan(nan_check_f16));
-    testing.expect(std.math.isInf(inf_check_f16));
-    testing.expect(std.math.isNan(nan_check_f32));
-    testing.expect(std.math.isInf(inf_check_f32));
-    testing.expect(std.math.isNan(nan_check_f64));
-    testing.expect(std.math.isInf(inf_check_f64));
+    try testing.expect(std.math.isNan(nan_check_f16));
+    try testing.expect(std.math.isInf(inf_check_f16));
+    try testing.expect(std.math.isNan(nan_check_f32));
+    try testing.expect(std.math.isInf(inf_check_f32));
+    try testing.expect(std.math.isNan(nan_check_f64));
+    try testing.expect(std.math.isInf(inf_check_f64));
     //expect(std.math.isNan(nan_check_f128));
     //expect(std.math.isInf(inf_check_f128));
 }
@@ -568,7 +572,7 @@ fn testSerializerDeserializer(comptime endian: builtin.Endian, comptime packing:
     try _serializer.serialize(my_inst);
 
     const my_copy = try _deserializer.deserialize(MyStruct);
-    testing.expect(meta.eql(my_copy, my_inst));
+    try testing.expect(meta.eql(my_copy, my_inst));
 }
 
 test "Serializer/Deserializer generic" {
@@ -601,11 +605,11 @@ fn testBadData(comptime endian: builtin.Endian, comptime packing: Packing) !void
     var _deserializer = deserializer(endian, packing, in.reader());
 
     try _serializer.serialize(@as(u14, 3));
-    testing.expectError(error.InvalidEnumTag, _deserializer.deserialize(A));
+    try testing.expectError(error.InvalidEnumTag, _deserializer.deserialize(A));
     out.pos = 0;
     try _serializer.serialize(@as(u14, 3));
     try _serializer.serialize(@as(u14, 88));
-    testing.expectError(error.InvalidEnumTag, _deserializer.deserialize(C));
+    try testing.expectError(error.InvalidEnumTag, _deserializer.deserialize(C));
 }
 
 test "Deserializer bad data" {
