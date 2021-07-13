@@ -394,10 +394,10 @@ fn testIntSerializerDeserializer(comptime endian: builtin.Endian, comptime packi
         const S = std.meta.Int(.signed, i);
         const x = try _deserializer.deserializeInt(U);
         const y = try _deserializer.deserializeInt(S);
-        testing.expect(x == @as(U, i));
+        try testing.expect(x == @as(U, i));
         if (i != 0) {
             try testing.expect(y == @as(S, -1));
-        } else { 
+        } else {
             try testing.expect(y == 0);
         }
     }
